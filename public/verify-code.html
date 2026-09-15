@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Validar código</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card">
+        <p class="eyebrow">Recuperação</p>
+        <h1>Validar código</h1>
+        <p class="lead">
+          Digite o código de 6 dígitos enviado por e-mail. Se o código estiver errado ou expirado, a tela avisa.
+        </p>
+
+        <p id="message" class="message" hidden></p>
+
+        <form id="verify-form">
+          <label>
+            Código OTP
+            <input
+              class="otp-input"
+              type="text"
+              name="code"
+              inputmode="numeric"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              autocomplete="one-time-code"
+              required
+            />
+          </label>
+
+          <div class="actions">
+            <button class="button-primary" type="submit">Validar código</button>
+            <div class="links">
+              <a href="/forgot-password.html">Reenviar código</a>
+              <a href="/login.html">Voltar ao login</a>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script>
+      const resetData = getResetData();
+
+      // Sem e-mail salvo, o aluno precisa recomeçar o fluxo.
+      if (!resetData.email) {
+        window.location.href = '/forgot-password.html';
+      }
+
+      const form = document.querySelector('#verify-form');
+      const message = document.querySelector('#message');
+      const button = form.querySelector('button');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        hideMessage(message);
+        setLoading(button, true);
+
+        const formData = Object.fromEntries(new FormData(form));
+
+        try {
+          const result = await api('/api/verify-code', {
+            method: 'POST',
+            body: {
+              email: resetData.email,
+              code: formData.code,
+            },
+          });
+
+          // Só depois da validação guardamos o código para a tela da nova senha.
+          saveResetData({ code: formData.code });
+          showMessage(message, result.message, 'success');
+
+          setTimeout(() => {
+            window.location.href = '/reset-password.html';
+          }, 800);
+        } catch (error) {
+          showMessage(message, error.message, 'error');
+        } finally {
+          setLoading(button, false);
+        }
+      });
+    </script>
+  </body>
+</html>

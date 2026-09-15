@@ -1,0 +1,11 @@
+# Dependências instaladas pelo npm — nunca versionamos essa pasta
+node_modules/
+
+# Segredos da máquina de cada aluno (e-mail, senha de app, session secret)
+.env
+
+# Pasta antiga do SQLite (não é mais usada)
+data/
+
+# Arquivos de sistema
+.DS_Store

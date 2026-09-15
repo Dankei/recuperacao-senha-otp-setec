@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criar conta</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card">
+        <p class="eyebrow">Mini curso</p>
+        <h1>Criar conta</h1>
+        <p class="lead">Cadastre nome, e-mail e senha. A senha será salva apenas como hash.</p>
+
+        <p id="message" class="message" hidden></p>
+
+        <form id="register-form">
+          <label>
+            Nome
+            <input type="text" name="name" autocomplete="name" required />
+          </label>
+
+          <label>
+            E-mail
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+
+          <label>
+            Senha
+            <input type="password" name="password" autocomplete="new-password" required minlength="6" />
+          </label>
+
+          <label>
+            Confirmação de senha
+            <input type="password" name="confirmPassword" autocomplete="new-password" required minlength="6" />
+          </label>
+
+          <div class="actions">
+            <button class="button-primary" type="submit">Cadastrar</button>
+            <div class="links">
+              <a href="/login.html">Voltar ao login</a>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script>
+      const form = document.querySelector('#register-form');
+      const message = document.querySelector('#message');
+      const button = form.querySelector('button');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        hideMessage(message);
+        setLoading(button, true);
+
+        const data = Object.fromEntries(new FormData(form));
+
+        try {
+          const result = await api('/api/register', { method: 'POST', body: data });
+          showMessage(message, result.message, 'success');
+          form.reset();
+
+          // Depois do cadastro, o aluno vai para o login usar a conta nova.
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 1200);
+        } catch (error) {
+          showMessage(message, error.message, 'error');
+        } finally {
+          setLoading(button, false);
+        }
+      });
+    </script>
+  </body>
+</html>

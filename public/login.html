@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrar</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card">
+        <p class="eyebrow">Mini curso</p>
+        <h1>Entrar</h1>
+        <p class="lead">Use o e-mail e a senha da conta para acessar a área logada.</p>
+
+        <!-- Mensagens de erro/sucesso são preenchidas pelo JavaScript -->
+        <p id="message" class="message" hidden></p>
+
+        <form id="login-form">
+          <label>
+            E-mail
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+
+          <label>
+            Senha
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+
+          <div class="actions">
+            <button class="button-primary" type="submit">Entrar</button>
+            <div class="links">
+              <a href="/forgot-password.html">Esqueci minha senha</a>
+              <a href="/register.html">Criar conta</a>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script>
+      // Se o aluno já estiver logado, não faz sentido ficar nesta tela.
+      api('/api/me')
+        .then(() => {
+          window.location.href = '/home.html';
+        })
+        .catch(() => {
+          // Sem sessão: permanece no login. Isso é o caminho normal.
+        });
+
+      const form = document.querySelector('#login-form');
+      const message = document.querySelector('#message');
+      const button = form.querySelector('button');
+
+      form.addEventListener('submit', async (event) => {
+        // Impede o recarregamento clássico do formulário HTML.
+        event.preventDefault();
+        hideMessage(message);
+        setLoading(button, true);
+
+        const data = Object.fromEntries(new FormData(form));
+
+        try {
+          await api('/api/login', { method: 'POST', body: data });
+          // O cookie de sessão já foi gravado pelo servidor.
+          window.location.href = '/home.html';
+        } catch (error) {
+          showMessage(message, error.message, 'error');
+        } finally {
+          setLoading(button, false);
+        }
+      });
+    </script>
+  </body>
+</html>

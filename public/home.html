@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Área autenticada</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card card--wide">
+        <p class="eyebrow">Área autenticada</p>
+        <h1>Login realizado</h1>
+        <!-- O nome é preenchido depois da chamada GET /api/me -->
+        <p id="greeting" class="home-name">Olá!</p>
+        <p class="home-note">
+          Esta página existe só para provar que a sessão funcionou. Não há mais funcionalidades aqui.
+        </p>
+        <button id="logout-button" class="button-secondary" type="button">Sair da conta</button>
+      </section>
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script>
+      const greeting = document.querySelector('#greeting');
+      const logoutButton = document.querySelector('#logout-button');
+
+      // Busca o usuário da sessão para mostrar "Olá, [nome]!"
+      api('/api/me')
+        .then((data) => {
+          greeting.textContent = `Olá, ${data.user.name}!`;
+        })
+        .catch(() => {
+          window.location.href = '/login.html';
+        });
+
+      logoutButton.addEventListener('click', async () => {
+        setLoading(logoutButton, true);
+
+        try {
+          await api('/api/logout', { method: 'POST' });
+          window.location.href = '/login.html';
+        } catch (error) {
+          alert(error.message);
+          setLoading(logoutButton, false);
+        }
+      });
+    </script>
+  </body>
+</html>

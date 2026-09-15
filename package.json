@@ -1,0 +1,29 @@
+{
+  "name": "cruso-setec",
+  "version": "1.0.0",
+  "description": "Projeto didático: cadastro, login e recuperação de senha com OTP por e-mail",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:setup": "mysql -u root < sql/create-database.sql"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "otp",
+    "express",
+    "mariadb",
+    "didatico"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mysql2": "^3.24.4",
+    "nodemailer": "^10.0.10"
+  }
+}
