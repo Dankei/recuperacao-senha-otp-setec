@@ -1,8 +1,8 @@
-# Esqueci minha senha com OTP
+# Esqueci minha senha com OTP (Versão Golang)
 
-Projeto didático em JavaScript para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
+Projeto didático em Go (Golang) para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
 
-O código é propositalmente simples: Node.js, Express, MariaDB, HTML, CSS e JavaScript puro. Sem TypeScript, React ou Next.js.
+O código é propositalmente simples e utiliza a biblioteca padrão do Go sempre que possível (especialmente as novidades de roteamento do Go 1.22). Sem frameworks como Gin ou Echo, apenas `net/http` e pacotes leves.
 
 ---
 
@@ -18,7 +18,7 @@ Uma aplicação web pequena com:
 - definição de uma nova senha
 - login de novo com a senha atualizada
 
-O OTP é enviado pelo Gmail via Nodemailer. Se o e-mail não estiver configurado, o código aparece no terminal para a aula continuar.
+O OTP é enviado pelo Gmail usando o pacote `net/smtp`. Se o e-mail não estiver configurado, o código aparece no terminal para a aula continuar.
 
 ---
 
@@ -26,26 +26,18 @@ O OTP é enviado pelo Gmail via Nodemailer. Se o e-mail não estiver configurado
 
 Requisitos:
 
-- Node.js 18 ou superior
-- npm
+- Go 1.22 ou superior
 - MariaDB (ou MySQL compatível) rodando na máquina
 
-No terminal, dentro da pasta do projeto:
+No terminal, dentro da pasta do projeto, baixe as dependências:
 
 ```bash
-npm install
+go mod tidy
 ```
 
-Isso instala Express, mysql2, bcryptjs, nodemailer, dotenv e express-session.
-
-- `mysql2` fala com o MariaDB.
-- `bcryptjs` usa o mesmo algoritmo do bcrypt, sem compilação nativa.
+Isso baixa os pacotes `mysql`, `bcrypt`, `gorilla/sessions` e `godotenv`.
 
 Depois, crie o banco (usuário `root` sem senha):
-
-```bash
-npm run db:setup
-```
 
 Se o cliente do seu computador se chama `mariadb`:
 
@@ -101,14 +93,10 @@ Se a tela de senhas de app não aparecer, a verificação em duas etapas ainda n
 
 ## 5. Como iniciar o projeto
 
-```bash
-npm start
-```
-
-Para recarregar sozinho quando um arquivo mudar:
+No terminal, na pasta do projeto:
 
 ```bash
-npm run dev
+go run ./src/*.go
 ```
 
 Abra no navegador:
@@ -117,7 +105,7 @@ Abra no navegador:
 http://localhost:3000
 ```
 
-Antes de iniciar, o banco precisa existir. Rode `npm run db:setup` uma vez.
+Antes de iniciar, o banco precisa existir. Rode o script de banco pelo menos uma vez.
 
 ---
 
@@ -126,17 +114,17 @@ Antes de iniciar, o banco precisa existir. Rode `npm run db:setup` uma vez.
 ```
 cruso-setec/
 ├── .env.example          # modelo das variáveis de ambiente
-├── package.json
+├── go.mod / go.sum       # dependências do Go
 ├── README.md
 ├── sql/
 │   └── create-database.sql  # cria o banco e as tabelas no MariaDB
 ├── src/
-│   ├── server.js         # sobe o Express, sessão e arquivos estáticos
-│   ├── routes.js         # endpoints da API (regras de negócio)
-│   ├── database.js       # conexão MariaDB e consultas
-│   ├── email.js          # envio do OTP com Nodemailer
-│   ├── auth.js           # middleware de sessão
-│   └── utils.js          # OTP, validações e hash da senha
+│   ├── main.go           # ponto de entrada, sobe o servidor e variáveis
+│   ├── routes.go         # endpoints da API (regras de negócio)
+│   ├── database.go       # conexão MariaDB e consultas
+│   ├── email.go          # envio do OTP via net/smtp
+│   ├── auth.go           # middleware de sessão usando gorilla/sessions
+│   └── utils.go          # OTP, validações e hash da senha
 └── public/
     ├── css/style.css
     ├── js/app.js         # fetch compartilhado e mensagens
@@ -150,12 +138,12 @@ cruso-setec/
 
 Onde cada coisa mora:
 
-- **Rotas:** `src/routes.js`
-- **Regras de negócio:** também em `src/routes.js` (de propósito, para a aula)
-- **Banco de dados:** `src/database.js`
-- **Envio de e-mail:** `src/email.js`
-- **Autenticação:** `src/auth.js` + sessão no `src/server.js`
-- **Utilitários:** `src/utils.js`
+- **Rotas:** `src/routes.go`
+- **Regras de negócio:** também em `src/routes.go` (de propósito, para a aula)
+- **Banco de dados:** `src/database.go`
+- **Envio de e-mail:** `src/email.go`
+- **Autenticação:** `src/auth.go` + sessão no `src/main.go`
+- **Utilitários:** `src/utils.go`
 
 ---
 
