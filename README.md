@@ -1,8 +1,8 @@
-# Esqueci minha senha com OTP
+# Esqueci minha senha com OTP (Versão Python / Flask)
 
-Projeto didático em JavaScript para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
+Projeto didático em Python para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
 
-O código é propositalmente simples: Node.js, Express, MariaDB, HTML, CSS e JavaScript puro. Sem TypeScript, React ou Next.js.
+O código é propositalmente simples: Python, Flask, PyMySQL, HTML, CSS. Sem frameworks gigantes ou ORMs complexos (como SQLAlchemy), escrevendo SQL na mão para facilitar o entendimento.
 
 ---
 
@@ -18,7 +18,7 @@ Uma aplicação web pequena com:
 - definição de uma nova senha
 - login de novo com a senha atualizada
 
-O OTP é enviado pelo Gmail via Nodemailer. Se o e-mail não estiver configurado, o código aparece no terminal para a aula continuar.
+O OTP é enviado pelo Gmail via `smtplib` nativo do Python. Se o e-mail não estiver configurado, o código aparece no terminal para a aula continuar.
 
 ---
 
@@ -26,26 +26,20 @@ O OTP é enviado pelo Gmail via Nodemailer. Se o e-mail não estiver configurado
 
 Requisitos:
 
-- Node.js 18 ou superior
-- npm
+- Python 3.8 ou superior
 - MariaDB (ou MySQL compatível) rodando na máquina
 
-No terminal, dentro da pasta do projeto:
+No terminal, dentro da pasta do projeto, crie um ambiente virtual e instale as dependências:
 
 ```bash
-npm install
+python3 -m venv venv
+source venv/bin/activate  # ou venv\Scripts\activate no Windows
+pip install -r requirements.txt
 ```
 
-Isso instala Express, mysql2, bcryptjs, nodemailer, dotenv e express-session.
-
-- `mysql2` fala com o MariaDB.
-- `bcryptjs` usa o mesmo algoritmo do bcrypt, sem compilação nativa.
+Isso instala o Flask, PyMySQL (para falar com o banco), bcrypt, python-dotenv e Flask-Session.
 
 Depois, crie o banco (usuário `root` sem senha):
-
-```bash
-npm run db:setup
-```
 
 Se o cliente do seu computador se chama `mariadb`:
 
@@ -101,14 +95,10 @@ Se a tela de senhas de app não aparecer, a verificação em duas etapas ainda n
 
 ## 5. Como iniciar o projeto
 
-```bash
-npm start
-```
-
-Para recarregar sozinho quando um arquivo mudar:
+Certifique-se de estar com o ambiente virtual ativo (`source venv/bin/activate`).
 
 ```bash
-npm run dev
+python3 src/server.py
 ```
 
 Abra no navegador:
@@ -117,7 +107,7 @@ Abra no navegador:
 http://localhost:3000
 ```
 
-Antes de iniciar, o banco precisa existir. Rode `npm run db:setup` uma vez.
+Antes de iniciar, o banco precisa existir. Rode o script do banco pelo menos uma vez.
 
 ---
 
@@ -126,17 +116,16 @@ Antes de iniciar, o banco precisa existir. Rode `npm run db:setup` uma vez.
 ```
 cruso-setec/
 ├── .env.example          # modelo das variáveis de ambiente
-├── package.json
+├── requirements.txt      # dependências do Python
 ├── README.md
 ├── sql/
 │   └── create-database.sql  # cria o banco e as tabelas no MariaDB
 ├── src/
-│   ├── server.js         # sobe o Express, sessão e arquivos estáticos
-│   ├── routes.js         # endpoints da API (regras de negócio)
-│   ├── database.js       # conexão MariaDB e consultas
-│   ├── email.js          # envio do OTP com Nodemailer
-│   ├── auth.js           # middleware de sessão
-│   └── utils.js          # OTP, validações e hash da senha
+│   ├── server.py         # sobe o Flask, sessão e arquivos estáticos
+│   ├── routes.py         # endpoints da API (Blueprint)
+│   ├── database.py       # conexão MariaDB e consultas (PyMySQL)
+│   ├── mailer.py         # envio do OTP com smtplib
+│   └── utils.py          # OTP, validações e hash da senha
 └── public/
     ├── css/style.css
     ├── js/app.js         # fetch compartilhado e mensagens
@@ -150,12 +139,12 @@ cruso-setec/
 
 Onde cada coisa mora:
 
-- **Rotas:** `src/routes.js`
-- **Regras de negócio:** também em `src/routes.js` (de propósito, para a aula)
-- **Banco de dados:** `src/database.js`
-- **Envio de e-mail:** `src/email.js`
-- **Autenticação:** `src/auth.js` + sessão no `src/server.js`
-- **Utilitários:** `src/utils.js`
+- **Rotas:** `src/routes.py`
+- **Regras de negócio:** também em `src/routes.py` (de propósito, para a aula)
+- **Banco de dados:** `src/database.py`
+- **Envio de e-mail:** `src/mailer.py`
+- **Autenticação:** decorador `@require_auth` em `src/routes.py` + sessão no `src/server.py`
+- **Utilitários:** `src/utils.py`
 
 ---
 
