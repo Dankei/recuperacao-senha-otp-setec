@@ -12,17 +12,18 @@
  * 8. Escuta a porta
  */
 
-const path = require('path');
-const express = require('express');
-const session = require('express-session');
+import path from 'path';
+import express from 'express';
+import session from 'express-session';
 
 // Precisa ser a primeira coisa: assim process.env já está preenchido
 // quando os outros arquivos (e-mail, sessão, MariaDB) forem usados.
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-const { testConnection } = require('./database');
-const routes = require('./routes');
-const { requirePageAuth } = require('./auth');
+import { testConnection } from './database';
+import routes from './routes';
+import { requirePageAuth } from './auth';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -57,7 +58,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // A raiz do site manda para a home (se logado) ou para o login.
 app.get('/', (req, res) => {
-  if (req.session.userId) {
+  if ((req.session as any).userId) {
     return res.redirect('/home.html');
   }
 
@@ -80,7 +81,7 @@ async function start() {
 start().catch(() => {
   console.error('Não foi possível conectar no MariaDB.');
   console.error('1) Suba o MariaDB');
-  console.error('2) Rode: mysql -u root < sql/create-database.sql');
+  console.error('2) Rode: mariadb -u root < sql/create-database.sql');
   console.error('3) Confira DB_USER=root e DB_PASSWORD vazio no .env');
   process.exit(1);
 });

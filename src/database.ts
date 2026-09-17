@@ -12,9 +12,9 @@
  * Na aula, o usuário é root e a senha fica vazia.
  */
 
-const mysql = require('mysql2/promise');
+import mysql, { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 
-const pool = mysql.createPool({
+export const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT || 3306),
   user: process.env.DB_USER || 'root',
@@ -30,7 +30,7 @@ const pool = mysql.createPool({
  * Se o MariaDB estiver desligado ou o banco ainda não existir,
  * o erro aparece logo, e não só na primeira tela.
  */
-async function testConnection() {
+export async function testConnection() {
   const connection = await pool.getConnection();
   connection.release();
 }
@@ -39,8 +39,8 @@ async function testConnection() {
 // Usuários
 // ---------------------------------------------------------------------------
 
-async function createUser({ name, email, passwordHash }) {
-  const [result] = await pool.execute(
+export async function createUser({ name, email, passwordHash }: { name: string, email: string, passwordHash: string }) {
+  const [result] = await pool.execute<ResultSetHeader>(
     `
       INSERT INTO users (name, email, password_hash)
       VALUES (?, ?, ?)
@@ -51,8 +51,8 @@ async function createUser({ name, email, passwordHash }) {
   return result.insertId;
 }
 
-async function findUserByEmail(email) {
-  const [rows] = await pool.execute(
+export async function findUserByEmail(email: string) {
+  const [rows] = await pool.execute<RowDataPacket[]>(
     `
       SELECT id, name, email, password_hash, created_at
       FROM users
@@ -64,8 +64,8 @@ async function findUserByEmail(email) {
   return rows[0] || null;
 }
 
-async function findUserById(id) {
-  const [rows] = await pool.execute(
+export async function findUserById(id: number) {
+  const [rows] = await pool.execute<RowDataPacket[]>(
     `
       SELECT id, name, email, created_at
       FROM users
@@ -77,7 +77,7 @@ async function findUserById(id) {
   return rows[0] || null;
 }
 
-async function updateUserPassword(userId, passwordHash) {
+export async function updateUserPassword(userId: number, passwordHash: string) {
   await pool.execute(
     `
       UPDATE users
@@ -96,7 +96,7 @@ async function updateUserPassword(userId, passwordHash) {
  * Quando o usuário pede um código novo, os códigos antigos
  * deixam de valer. Marcamos used_at para "queimar" os anteriores.
  */
-async function invalidatePreviousCodes(userId) {
+export async function invalidatePreviousCodes(userId: number) {
   await pool.execute(
     `
       UPDATE password_resets
@@ -108,8 +108,8 @@ async function invalidatePreviousCodes(userId) {
   );
 }
 
-async function createPasswordReset({ userId, code, expiresAt }) {
-  const [result] = await pool.execute(
+export async function createPasswordReset({ userId, code, expiresAt }: { userId: number, code: string, expiresAt: string }) {
+  const [result] = await pool.execute<ResultSetHeader>(
     `
       INSERT INTO password_resets (user_id, code, expires_at)
       VALUES (?, ?, ?)
@@ -124,8 +124,8 @@ async function createPasswordReset({ userId, code, expiresAt }) {
  * Busca o código mais recente daquele usuário que ainda não foi marcado como usado.
  * Na prática, depois de invalidar os anteriores, só deve existir um ativo.
  */
-async function findActiveResetByUserId(userId) {
-  const [rows] = await pool.execute(
+export async function findActiveResetByUserId(userId: number) {
+  const [rows] = await pool.execute<RowDataPacket[]>(
     `
       SELECT id, user_id, code, expires_at, used_at, attempts, created_at
       FROM password_resets
@@ -140,7 +140,7 @@ async function findActiveResetByUserId(userId) {
   return rows[0] || null;
 }
 
-async function incrementResetAttempts(resetId) {
+export async function incrementResetAttempts(resetId: number) {
   await pool.execute(
     `
       UPDATE password_resets
@@ -155,7 +155,7 @@ async function incrementResetAttempts(resetId) {
  * Marca o código como utilizado.
  * A partir daqui ele não pode mais redefinir a senha.
  */
-async function markResetAsUsed(resetId) {
+export async function markResetAsUsed(resetId: number) {
   await pool.execute(
     `
       UPDATE password_resets
@@ -165,17 +165,3 @@ async function markResetAsUsed(resetId) {
     [resetId]
   );
 }
-
-module.exports = {
-  pool,
-  testConnection,
-  createUser,
-  findUserByEmail,
-  findUserById,
-  updateUserPassword,
-  invalidatePreviousCodes,
-  createPasswordReset,
-  findActiveResetByUserId,
-  incrementResetAttempts,
-  markResetAsUsed,
-};

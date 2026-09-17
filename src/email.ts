@@ -14,10 +14,10 @@
  *    testar o fluxo mesmo sem App Password do Google.
  */
 
-const nodemailer = require('nodemailer');
-const { OTP_VALIDITY_MINUTES } = require('./utils');
+import nodemailer from 'nodemailer';
+import { OTP_VALIDITY_MINUTES } from './utils';
 
-function isEmailConfigured() {
+export function isEmailConfigured() {
   return Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
 }
 
@@ -44,7 +44,7 @@ function createTransporter() {
  * Fazemos isso aqui apenas quando o e-mail não está configurado,
  * para a turma conseguir seguir o fluxo.
  */
-async function sendOtpEmail(to, code) {
+export async function sendOtpEmail(to: string, code: string) {
   if (!isEmailConfigured()) {
     console.log('----------------------------------------');
     console.log('E-mail não configurado no .env.');
@@ -78,8 +78,3 @@ async function sendOtpEmail(to, code) {
     `,
   });
 }
-
-module.exports = {
-  isEmailConfigured,
-  sendOtpEmail,
-};

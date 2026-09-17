@@ -1,8 +1,8 @@
-# Esqueci minha senha com OTP
+# Esqueci minha senha com OTP (Versão TypeScript)
 
-Projeto didático em JavaScript para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
+Projeto didático em TypeScript para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
 
-O código é propositalmente simples: Node.js, Express, MariaDB, HTML, CSS e JavaScript puro. Sem TypeScript, React ou Next.js.
+O código é propositalmente simples: Node.js, Express, MariaDB, HTML, CSS e TypeScript puro. Sem React ou Next.js.
 
 ---
 
@@ -127,16 +127,17 @@ Antes de iniciar, o banco precisa existir. Rode `npm run db:setup` uma vez.
 cruso-setec/
 ├── .env.example          # modelo das variáveis de ambiente
 ├── package.json
+├── tsconfig.json         # configuração do TypeScript
 ├── README.md
 ├── sql/
 │   └── create-database.sql  # cria o banco e as tabelas no MariaDB
 ├── src/
-│   ├── server.js         # sobe o Express, sessão e arquivos estáticos
-│   ├── routes.js         # endpoints da API (regras de negócio)
-│   ├── database.js       # conexão MariaDB e consultas
-│   ├── email.js          # envio do OTP com Nodemailer
-│   ├── auth.js           # middleware de sessão
-│   └── utils.js          # OTP, validações e hash da senha
+│   ├── server.ts         # sobe o Express, sessão e arquivos estáticos
+│   ├── routes.ts         # endpoints da API (regras de negócio)
+│   ├── database.ts       # conexão MariaDB e consultas
+│   ├── email.ts          # envio do OTP com Nodemailer
+│   ├── auth.ts           # middleware de sessão
+│   └── utils.ts          # OTP, validações e hash da senha
 └── public/
     ├── css/style.css
     ├── js/app.js         # fetch compartilhado e mensagens
@@ -150,12 +151,12 @@ cruso-setec/
 
 Onde cada coisa mora:
 
-- **Rotas:** `src/routes.js`
-- **Regras de negócio:** também em `src/routes.js` (de propósito, para a aula)
-- **Banco de dados:** `src/database.js`
-- **Envio de e-mail:** `src/email.js`
-- **Autenticação:** `src/auth.js` + sessão no `src/server.js`
-- **Utilitários:** `src/utils.js`
+- **Rotas:** `src/routes.ts`
+- **Regras de negócio:** também em `src/routes.ts` (de propósito, para a aula)
+- **Banco de dados:** `src/database.ts`
+- **Envio de e-mail:** `src/email.ts`
+- **Autenticação:** `src/auth.ts` + sessão no `src/server.ts`
+- **Utilitários:** `src/utils.ts`
 
 ---
 

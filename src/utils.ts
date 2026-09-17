@@ -10,25 +10,23 @@
  * a rota decide o fluxo; os utilitários fazem o "como".
  */
 
-const crypto = require('crypto');
-// bcryptjs é o mesmo algoritmo do bcrypt, mas em JavaScript puro.
-// Assim o aluno não precisa compilar um módulo nativo na hora da aula.
-const bcrypt = require('bcryptjs');
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 // Quantas "rodadas" o bcrypt usa para gerar o hash.
 // Quanto maior, mais lento (e mais seguro contra força bruta).
 // 10 é um valor didático e aceitável para um projeto de aula.
-const SALT_ROUNDS = 10;
+export const SALT_ROUNDS = 10;
 
 // Tamanho mínimo da senha. Em sistemas reais costuma ser maior
 // e incluir regras extras (letra, número, símbolo).
-const MIN_PASSWORD_LENGTH = 6;
+export const MIN_PASSWORD_LENGTH = 6;
 
 // OTP vale por 10 minutos a partir do momento em que foi gerado.
-const OTP_VALIDITY_MINUTES = 10;
+export const OTP_VALIDITY_MINUTES = 10;
 
 // Depois de 5 tentativas erradas, o código deixa de ser aceito.
-const OTP_MAX_ATTEMPTS = 5;
+export const OTP_MAX_ATTEMPTS = 5;
 
 /**
  * Gera um código numérico de 6 dígitos.
@@ -39,15 +37,15 @@ const OTP_MAX_ATTEMPTS = 5;
  * randomInt(min, max) inclui o min e exclui o max.
  * Então 100000 até 1000000 gera números de 100000 a 999999.
  */
-function generateOtp() {
+export function generateOtp() {
   return String(crypto.randomInt(100000, 1000000));
 }
 
 /**
  * Formata uma data no padrão DATETIME do MariaDB: YYYY-MM-DD HH:MM:SS
  */
-function toMysqlDateTime(date) {
-  const pad = (value) => String(value).padStart(2, '0');
+function toMysqlDateTime(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, '0');
 
   return [
     date.getFullYear(),
@@ -68,7 +66,7 @@ function toMysqlDateTime(date) {
  * Calcula a data/hora em que o OTP expira.
  * Guardamos no formato DATETIME do MariaDB para gravar em expires_at.
  */
-function getOtpExpirationDate() {
+export function getOtpExpirationDate() {
   const expires = new Date();
   expires.setMinutes(expires.getMinutes() + OTP_VALIDITY_MINUTES);
   return toMysqlDateTime(expires);
@@ -81,7 +79,7 @@ function getOtpExpirationDate() {
  * O bcrypt já inclui um "sal" aleatório dentro do hash,
  * então duas pessoas com a mesma senha terão hashes diferentes.
  */
-function hashPassword(password) {
+export function hashPassword(password: string) {
   return bcrypt.hashSync(password, SALT_ROUNDS);
 }
 
@@ -89,7 +87,7 @@ function hashPassword(password) {
  * Compara a senha digitada no login com o hash salvo no banco.
  * Retorna true somente se for a mesma senha.
  */
-function comparePassword(password, passwordHash) {
+export function comparePassword(password: string, passwordHash: string) {
   return bcrypt.compareSync(password, passwordHash);
 }
 
@@ -97,7 +95,7 @@ function comparePassword(password, passwordHash) {
  * Validação simples de e-mail.
  * Não precisa ser perfeita: o objetivo é barrar textos claramente inválidos.
  */
-function isValidEmail(email) {
+export function isValidEmail(email: any) {
   if (typeof email !== 'string') {
     return false;
   }
@@ -111,7 +109,7 @@ function isValidEmail(email) {
  * Valida o cadastro (ou a troca de senha) antes de falar com o banco.
  * Devolve uma string de erro para mostrar ao aluno, ou null se estiver ok.
  */
-function validateRegisterInput({ name, email, password, confirmPassword }) {
+export function validateRegisterInput({ name, email, password, confirmPassword }: any) {
   if (!name || !String(name).trim()) {
     return 'Informe o nome.';
   }
@@ -134,7 +132,7 @@ function validateRegisterInput({ name, email, password, confirmPassword }) {
 /**
  * Valida só a nova senha (usado em "Redefinir senha").
  */
-function validateNewPassword({ password, confirmPassword }) {
+export function validateNewPassword({ password, confirmPassword }: any) {
   if (!password || String(password).length < MIN_PASSWORD_LENGTH) {
     return `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`;
   }
@@ -150,7 +148,7 @@ function validateNewPassword({ password, confirmPassword }) {
  * Normaliza o e-mail: tira espaços e deixa em minúsculas.
  * Assim "Daniel@Email.com" e "daniel@email.com" viram a mesma conta.
  */
-function normalizeEmail(email) {
+export function normalizeEmail(email: any) {
   return String(email || '').trim().toLowerCase();
 }
 
@@ -161,7 +159,7 @@ function normalizeEmail(email) {
  * - passou do prazo
  * - estourou o limite de tentativas
  */
-function getOtpError(reset) {
+export function getOtpError(reset: any) {
   if (!reset) {
     return 'Código inválido ou expirado.';
   }
@@ -181,18 +179,3 @@ function getOtpError(reset) {
 
   return null;
 }
-
-module.exports = {
-  generateOtp,
-  getOtpExpirationDate,
-  hashPassword,
-  comparePassword,
-  isValidEmail,
-  validateRegisterInput,
-  validateNewPassword,
-  normalizeEmail,
-  getOtpError,
-  OTP_VALIDITY_MINUTES,
-  OTP_MAX_ATTEMPTS,
-  MIN_PASSWORD_LENGTH,
-};

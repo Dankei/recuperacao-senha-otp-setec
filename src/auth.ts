@@ -8,12 +8,14 @@
  * Eles não conhecem senha, OTP nem banco — só a sessão.
  */
 
+import { Request, Response, NextFunction } from 'express';
+
 /**
  * Usado nas rotas da API que exigem usuário logado (ex.: GET /api/me).
  * Se não houver sessão, devolve 401 para o frontend redirecionar ao login.
  */
-function requireAuth(req, res, next) {
-  if (!req.session.userId) {
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!(req.session as any).userId) {
     return res.status(401).json({ error: 'Você precisa estar logado.' });
   }
 
@@ -24,15 +26,10 @@ function requireAuth(req, res, next) {
  * Usado na página HTML da área logada.
  * Se o aluno abrir /home.html sem sessão, mandamos de volta ao login.
  */
-function requirePageAuth(req, res, next) {
-  if (!req.session.userId) {
+export function requirePageAuth(req: Request, res: Response, next: NextFunction) {
+  if (!(req.session as any).userId) {
     return res.redirect('/login.html');
   }
 
   next();
 }
-
-module.exports = {
-  requireAuth,
-  requirePageAuth,
-};
