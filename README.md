@@ -124,7 +124,7 @@ Antes de iniciar, o banco precisa existir. Rode `npm run db:setup` uma vez.
 ## 6. Estrutura das pastas
 
 ```
-cruso-setec/
+recuperacao-senha-otp-setec/
 ├── .env.example          # modelo das variáveis de ambiente
 ├── package.json
 ├── README.md
