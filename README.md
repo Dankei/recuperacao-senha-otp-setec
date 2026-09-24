@@ -1,6 +1,15 @@
 # Esqueci minha senha com OTP
 
-Projeto didático em JavaScript para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
+Projeto didático em JavaScript para um mini curso. Cadastro, login e logout já funcionam. A recuperação de senha com OTP fica para a aula: o corpo das funções está vazio e o comentário `AULA:` marca onde escrever.
+
+Arquivos da prática:
+
+- `src/utils.js`: gerar o código, calcular a validade e recusar código usado, expirado ou com tentativas demais
+- `src/database.js`: gravar, buscar e queimar o código em `password_resets`
+- `src/email.js`: enviar o código (ou imprimir no terminal se o SMTP não estiver no `.env`)
+- `src/routes.js`: `POST /api/forgot-password`, `POST /api/verify-code` e `POST /api/reset-password`
+
+A branch `main` tem a versão já implementada, para consulta depois da aula.
 
 O código é propositalmente simples: Node.js, Express, MariaDB, HTML, CSS e JavaScript puro. Sem TypeScript, React ou Next.js.
 
@@ -212,6 +221,8 @@ MariaDB no banco `cruso_setec`, criado pelo script [sql/create-database.sql](sql
 
 ## 10. Fluxo de recuperação de senha
 
+Este fluxo ainda não está no código desta branch. A ordem abaixo é o que a turma implementa nos pontos marcados com `AULA:`.
+
 1. Em `forgot-password.html`, o aluno informa o e-mail.
 2. `POST /api/forgot-password` procura a conta.
 3. A resposta é **sempre a mesma**, exista conta ou não.
@@ -236,9 +247,9 @@ MariaDB no banco `cruso_setec`, criado pelo script [sql/create-database.sql](sql
 | `POST` | `/api/login` | Autentica e abre a sessão. Corpo: `email`, `password`. |
 | `POST` | `/api/logout` | Destroi a sessão e limpa o cookie. |
 | `GET` | `/api/me` | Devolve o usuário logado. Exige cookie de sessão. |
-| `POST` | `/api/forgot-password` | Gera e envia o OTP. Corpo: `email`. |
-| `POST` | `/api/verify-code` | Valida o OTP. Corpo: `email`, `code`. |
-| `POST` | `/api/reset-password` | Troca a senha. Corpo: `email`, `code`, `password`, `confirmPassword`. |
+| `POST` | `/api/forgot-password` | A implementar na aula: gera e envia o OTP. Corpo: `email`. |
+| `POST` | `/api/verify-code` | A implementar na aula: valida o OTP. Corpo: `email`, `code`. |
+| `POST` | `/api/reset-password` | A implementar na aula: troca a senha. Corpo: `email`, `code`, `password`, `confirmPassword`. |
 
 Exemplos com `curl`:
 

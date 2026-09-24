@@ -16,19 +16,19 @@
 
 const express = require('express');
 const db = require('./database');
-const { sendOtpEmail } = require('./email');
 const { requireAuth } = require('./auth');
 const {
-  generateOtp,
-  getOtpExpirationDate,
   hashPassword,
   comparePassword,
   isValidEmail,
   validateRegisterInput,
   validateNewPassword,
   normalizeEmail,
-  getOtpError,
 } = require('./utils');
+
+// AULA: quando o OTP estiver escrito, importe também:
+// const { sendOtpEmail } = require('./email');
+// generateOtp, getOtpExpirationDate e getOtpError, de ./utils
 
 const router = express.Router();
 
@@ -167,30 +167,13 @@ router.post('/forgot-password', handle(async (req, res) => {
     return res.json({ message: FORGOT_PASSWORD_MESSAGE });
   }
 
-  // 1) Queima códigos antigos daquele usuário.
-  await db.invalidatePreviousCodes(user.id);
-
-  // 2) Gera um OTP de 6 dígitos e define a validade.
-  const code = generateOtp();
-  const expiresAt = getOtpExpirationDate();
-
-  // 3) Salva o código no banco para validar depois.
-  await db.createPasswordReset({
-    userId: user.id,
-    code,
-    expiresAt,
-  });
-
-  // 4) Envia o e-mail (ou imprime no terminal, se SMTP não estiver no .env).
-  try {
-    await sendOtpEmail(user.email, code);
-  } catch (error) {
-    // Não devolvemos detalhes internos (senha, host, stack) para o navegador.
-    console.error('Falha ao enviar e-mail de recuperação.');
-    return res.status(500).json({
-      error: 'Não foi possível enviar o e-mail. Tente novamente em instantes.',
-    });
-  }
+  // AULA: o OTP entra aqui, só quando a conta existe.
+  // 1. Invalidar códigos anteriores: db.invalidatePreviousCodes(user.id)
+  // 2. Gerar o código e a validade: generateOtp() e getOtpExpirationDate()
+  // 3. Salvar em password_resets: db.createPasswordReset({ userId, code, expiresAt })
+  // 4. Enviar com sendOtpEmail(user.email, code)
+  //    Se o envio falhar, responda 500 sem mostrar senha, host ou stack.
+  // A resposta de sucesso é a mesma de quando o e-mail não existe.
 
   return res.json({ message: FORGOT_PASSWORD_MESSAGE });
 }));
@@ -203,35 +186,14 @@ router.post('/verify-code', handle(async (req, res) => {
     return res.status(400).json({ error: 'Informe o e-mail e o código.' });
   }
 
-  const user = await db.findUserByEmail(email);
-  const reset = user ? await db.findActiveResetByUserId(user.id) : null;
+  // AULA: validar o OTP aqui. Não diga se o e-mail existe.
+  // 1. Buscar o usuário e o reset ativo (used_at nulo)
+  // 2. getOtpError(reset): usado, expirado ou tentativas estouradas
+  // 3. Se o código não bater, db.incrementResetAttempts e responder erro
+  // 4. Se bater, responder sucesso. Ainda não marque como usado.
+  // Sucesso: { message: 'Código validado. Defina uma nova senha.' }
 
-  // Se o e-mail não existe, tratamos como código inválido.
-  // De novo: não revelamos se a conta existe.
-  const otpError = getOtpError(reset);
-  if (otpError) {
-    return res.status(400).json({ error: otpError });
-  }
-
-  // Código errado: incrementa tentativas e avisa.
-  if (reset.code !== code) {
-    await db.incrementResetAttempts(reset.id);
-
-    const nextAttempts = reset.attempts + 1;
-    if (nextAttempts >= 5) {
-      return res.status(400).json({
-        error: 'Número de tentativas excedido. Solicite um novo código.',
-      });
-    }
-
-    return res.status(400).json({ error: 'Código incorreto.' });
-  }
-
-  // Código certo, ainda válido e não usado.
-  // Ainda NÃO marcamos como usado: isso acontece só ao gravar a nova senha.
-  return res.json({
-    message: 'Código validado. Defina uma nova senha.',
-  });
+  return res.status(400).json({ error: 'Código inválido ou expirado.' });
 }));
 
 router.post('/reset-password', handle(async (req, res) => {
@@ -248,33 +210,15 @@ router.post('/reset-password', handle(async (req, res) => {
     return res.status(400).json({ error: 'Informe o e-mail e o código.' });
   }
 
-  const user = await db.findUserByEmail(email);
-  const reset = user ? await db.findActiveResetByUserId(user.id) : null;
-  const otpError = getOtpError(reset);
+  // AULA: trocar a senha só depois de revalidar o OTP.
+  // Quem pular a tela de verificação não pode acertar um código aleatório.
+  // 1. Buscar usuário e reset ativo, e rodar getOtpError de novo
+  // 2. Se o código não bater, incrementar tentativas e recusar
+  // 3. hashPassword(password) e db.updateUserPassword
+  // 4. db.markResetAsUsed: o código é de uso único
+  // Sucesso: { message: 'Senha redefinida com sucesso. Faça login com a nova senha.' }
 
-  if (otpError) {
-    return res.status(400).json({ error: otpError });
-  }
-
-  // Revalidamos o código aqui. Assim ninguém pula a tela de verificação
-  // e tenta trocar a senha direto com um código aleatório.
-  if (reset.code !== code) {
-    await db.incrementResetAttempts(reset.id);
-    return res.status(400).json({ error: 'Código incorreto ou expirado.' });
-  }
-
-  // 1) Nova senha vira hash.
-  const passwordHash = hashPassword(password);
-
-  // 2) Atualiza a senha do usuário.
-  await db.updateUserPassword(user.id, passwordHash);
-
-  // 3) Queima o código: ele é de uso único.
-  await db.markResetAsUsed(reset.id);
-
-  return res.json({
-    message: 'Senha redefinida com sucesso. Faça login com a nova senha.',
-  });
+  return res.status(400).json({ error: 'Código inválido ou expirado.' });
 }));
 
 module.exports = router;

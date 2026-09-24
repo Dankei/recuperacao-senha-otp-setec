@@ -97,27 +97,13 @@ async function updateUserPassword(userId, passwordHash) {
  * deixam de valer. Marcamos used_at para "queimar" os anteriores.
  */
 async function invalidatePreviousCodes(userId) {
-  await pool.execute(
-    `
-      UPDATE password_resets
-      SET used_at = NOW()
-      WHERE user_id = ?
-        AND used_at IS NULL
-    `,
-    [userId]
-  );
+  // AULA: UPDATE em password_resets, used_at = NOW(),
+  // só deste user_id e só onde used_at ainda é NULL.
 }
 
 async function createPasswordReset({ userId, code, expiresAt }) {
-  const [result] = await pool.execute(
-    `
-      INSERT INTO password_resets (user_id, code, expires_at)
-      VALUES (?, ?, ?)
-    `,
-    [userId, code, expiresAt]
-  );
-
-  return result.insertId;
+  // AULA: INSERT em password_resets (user_id, code, expires_at).
+  // Retorne o insertId.
 }
 
 /**
@@ -125,30 +111,12 @@ async function createPasswordReset({ userId, code, expiresAt }) {
  * Na prática, depois de invalidar os anteriores, só deve existir um ativo.
  */
 async function findActiveResetByUserId(userId) {
-  const [rows] = await pool.execute(
-    `
-      SELECT id, user_id, code, expires_at, used_at, attempts, created_at
-      FROM password_resets
-      WHERE user_id = ?
-        AND used_at IS NULL
-      ORDER BY created_at DESC
-      LIMIT 1
-    `,
-    [userId]
-  );
-
-  return rows[0] || null;
+  // AULA: SELECT do reset mais recente deste usuário com used_at NULL.
+  // ORDER BY created_at DESC LIMIT 1. Retorne a linha ou null.
 }
 
 async function incrementResetAttempts(resetId) {
-  await pool.execute(
-    `
-      UPDATE password_resets
-      SET attempts = attempts + 1
-      WHERE id = ?
-    `,
-    [resetId]
-  );
+  // AULA: somar 1 em attempts neste id.
 }
 
 /**
@@ -156,14 +124,7 @@ async function incrementResetAttempts(resetId) {
  * A partir daqui ele não pode mais redefinir a senha.
  */
 async function markResetAsUsed(resetId) {
-  await pool.execute(
-    `
-      UPDATE password_resets
-      SET used_at = NOW()
-      WHERE id = ?
-    `,
-    [resetId]
-  );
+  // AULA: gravar used_at = NOW() neste id. Depois disso o código não vale mais.
 }
 
 module.exports = {

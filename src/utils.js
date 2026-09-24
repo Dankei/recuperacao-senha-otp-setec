@@ -40,7 +40,8 @@ const OTP_MAX_ATTEMPTS = 5;
  * Então 100000 até 1000000 gera números de 100000 a 999999.
  */
 function generateOtp() {
-  return String(crypto.randomInt(100000, 1000000));
+  // AULA: retornar um código numérico de 6 dígitos, como string.
+  // Usar crypto.randomInt, não Math.random: o OTP é um segredo temporário.
 }
 
 /**
@@ -69,9 +70,8 @@ function toMysqlDateTime(date) {
  * Guardamos no formato DATETIME do MariaDB para gravar em expires_at.
  */
 function getOtpExpirationDate() {
-  const expires = new Date();
-  expires.setMinutes(expires.getMinutes() + OTP_VALIDITY_MINUTES);
-  return toMysqlDateTime(expires);
+  // AULA: somar OTP_VALIDITY_MINUTES à data atual
+  // e devolver no formato DATETIME do MariaDB (toMysqlDateTime).
 }
 
 /**
@@ -162,24 +162,9 @@ function normalizeEmail(email) {
  * - estourou o limite de tentativas
  */
 function getOtpError(reset) {
-  if (!reset) {
-    return 'Código inválido ou expirado.';
-  }
-
-  // used_at preenchido = código já foi consumido na troca de senha
-  if (reset.used_at) {
-    return 'Este código já foi utilizado. Solicite um novo.';
-  }
-
-  if (new Date(reset.expires_at) < new Date()) {
-    return 'Este código expirou. Solicite um novo.';
-  }
-
-  if (reset.attempts >= OTP_MAX_ATTEMPTS) {
-    return 'Número de tentativas excedido. Solicite um novo código.';
-  }
-
-  return null;
+  // AULA: devolver uma mensagem de erro, ou null se o código ainda vale.
+  // Recusar quando não há reset, used_at está preenchido,
+  // expires_at já passou, ou attempts >= OTP_MAX_ATTEMPTS.
 }
 
 module.exports = {

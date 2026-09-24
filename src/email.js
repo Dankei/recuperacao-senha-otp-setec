@@ -45,38 +45,11 @@ function createTransporter() {
  * para a turma conseguir seguir o fluxo.
  */
 async function sendOtpEmail(to, code) {
-  if (!isEmailConfigured()) {
-    console.log('----------------------------------------');
-    console.log('E-mail não configurado no .env.');
-    console.log('Modo aula: o código OTP aparece abaixo.');
-    console.log(`Destinatário: ${to}`);
-    console.log(`Código OTP:   ${code}`);
-    console.log(`Validade:     ${OTP_VALIDITY_MINUTES} minutos`);
-    console.log('----------------------------------------');
-    return;
-  }
-
-  const transporter = createTransporter();
-
-  await transporter.sendMail({
-    from: `"Recuperação de senha" <${process.env.EMAIL_USER}>`,
-    to,
-    subject: 'Seu código para redefinir a senha',
-    text: [
-      'Você pediu para redefinir a senha.',
-      '',
-      `Código de verificação: ${code}`,
-      `Este código vale por ${OTP_VALIDITY_MINUTES} minutos.`,
-      '',
-      'Se você não pediu isso, ignore este e-mail.',
-    ].join('\n'),
-    html: `
-      <p>Você pediu para redefinir a senha.</p>
-      <p>Código de verificação: <strong>${code}</strong></p>
-      <p>Este código vale por ${OTP_VALIDITY_MINUTES} minutos.</p>
-      <p>Se você não pediu isso, ignore este e-mail.</p>
-    `,
-  });
+  // AULA: enviar o código OTP.
+  // Sem EMAIL_USER e EMAIL_PASSWORD, imprimir destinatário, código e validade
+  // no terminal (só para a aula seguir sem App Password).
+  // Com SMTP configurado, usar createTransporter() e sendMail.
+  // Nesse caso não logar o código: em sistema real o OTP não vai para o log.
 }
 
 module.exports = {
