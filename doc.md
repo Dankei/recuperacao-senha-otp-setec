@@ -1,6 +1,8 @@
-Crie um projeto completo em **JavaScript** para ser utilizado em um mini curso onde ensinarei, passo a passo, como implementar o fluxo de **“Esqueci minha senha” utilizando OTP enviado por e-mail**.
+Crie um projeto completo em **PHP com Laravel** para ser utilizado em um mini curso onde ensinarei, passo a passo, como implementar o fluxo de **“Esqueci minha senha” utilizando OTP enviado por e-mail**.
 
 O projeto deve ser simples, didático e fácil de entender para alunos iniciantes/intermediários. Evite abstrações e arquiteturas desnecessariamente complexas.
+
+Esta branch é a versão Laravel do mesmo fluxo. O frontend (HTML, CSS e JavaScript puro) permanece.
 
 ## Objetivo do projeto
 
@@ -20,16 +22,15 @@ O sistema deve simular uma aplicação real simples contendo:
 
 Utilize:
 
-* JavaScript puro no backend.
-* Node.js.
-* Express.
-* Banco de dados SQLite para facilitar a execução pelos alunos.
+* PHP 8.3 ou superior.
+* Laravel.
+* Banco de dados MariaDB, criado pelo script `sql/create-database.sql` (sem migrations da aula).
 * HTML, CSS e JavaScript simples no frontend.
-* Nodemailer para envio de e-mails.
-* bcrypt para armazenamento seguro das senhas.
-* dotenv para variáveis de ambiente.
+* Mailer do Laravel (SMTP do Gmail) para envio de e-mails.
+* `password_hash` / `password_verify` (bcrypt, custo 10) para as senhas.
+* `.env` do Laravel para variáveis de ambiente.
 
-Não utilize TypeScript, React, Next.js ou outros frameworks frontend. O objetivo é deixar o código o mais simples e didático possível.
+Não utilize React, Next.js ou outros frameworks frontend. O objetivo é deixar o código o mais simples e didático possível.
 
 ## Páginas
 
@@ -83,7 +84,7 @@ Não é necessário criar funcionalidades complexas nessa área. Ela existe apen
 
 ## Banco de dados
 
-Crie automaticamente o banco SQLite e as tabelas necessárias.
+As tabelas são criadas pelo script SQL, não automaticamente pelo Laravel.
 
 Tabela `users`:
 
@@ -115,7 +116,7 @@ Usuário clica em “Esqueci minha senha”
 → gera um código OTP de 6 dígitos
 → salva o código no banco
 → define uma validade para o código
-→ envia o código por e-mail utilizando Nodemailer
+→ envia o código por e-mail
 → usuário informa o código
 → servidor valida o código
 → verifica expiração e tentativas
@@ -127,9 +128,9 @@ Usuário clica em “Esqueci minha senha”
 
 ## E-mail
 
-Utilize Nodemailer com SMTP do Google.
+Utilize o mailer do Laravel com SMTP do Google.
 
-As credenciais devem ficar no `.env`, por exemplo:
+As credenciais devem ficar no `.env`:
 
 EMAIL_USER=
 EMAIL_PASSWORD=
@@ -139,6 +140,8 @@ Crie também um `.env.example`.
 Nunca coloque credenciais diretamente no código.
 
 No README, explique que o aluno deve utilizar uma **App Password do Google**, e não a senha normal da conta.
+
+Se essas variáveis estiverem vazias, imprima o OTP no terminal para a aula continuar.
 
 ## Segurança
 
@@ -159,25 +162,28 @@ Implemente boas práticas básicas:
 
 ## API
 
-Crie endpoints simples e fáceis de explicar durante a aula, por exemplo:
+Crie endpoints simples e fáceis de explicar durante a aula:
 
 POST /api/register
 POST /api/login
 POST /api/logout
+GET /api/me
 POST /api/forgot-password
 POST /api/verify-code
 POST /api/reset-password
 
 Organize o código de forma simples, deixando claro onde estão:
 
-* Rotas.
-* Regras de negócio.
-* Banco de dados.
-* Envio de e-mail.
-* Autenticação.
-* Utilitários.
+* Rotas: `routes/web.php` e `app/Http/Controllers/ApiController.php`.
+* Regras de negócio: `ApiController.php`.
+* Banco de dados: `app/Database.php`.
+* Envio de e-mail: `app/Email.php`.
+* Autenticação: `app/Http/Middleware/RequireAuth.php`.
+* Utilitários: `app/Utils.php`.
 
 Não crie uma arquitetura exageradamente sofisticada.
+
+A sessão usa cookie `httpOnly`. As rotas `/api` ficam fora da verificação CSRF para o `fetch` atual do frontend continuar funcionando.
 
 ## Interface
 
@@ -188,6 +194,8 @@ O foco do projeto é o funcionamento do backend e do processo de recuperação d
 Utilize CSS próprio, sem necessidade de frameworks.
 
 As páginas devem ser responsivas e apresentar mensagens claras de sucesso e erro.
+
+Sirva os HTML por rota (`resources/pages`), para que `/home.html` passe pelo middleware de sessão. CSS e JS ficam em `public/`.
 
 ## Material didático
 

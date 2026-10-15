@@ -1,8 +1,8 @@
 # Esqueci minha senha com OTP
 
-Projeto didático em JavaScript para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
+Projeto didático em PHP para um mini curso. Ele mostra, passo a passo, um fluxo real de **cadastro**, **login** e **recuperação de senha** usando um código OTP enviado por e-mail.
 
-O código é propositalmente simples: Node.js, Express, MariaDB, HTML, CSS e JavaScript puro. Sem TypeScript, React ou Next.js.
+O código é propositalmente simples: Laravel, MariaDB, HTML, CSS e JavaScript puro. Sem React ou Next.js. O frontend é o mesmo da versão Node: páginas estáticas que chamam a API.
 
 ---
 
@@ -18,7 +18,7 @@ Uma aplicação web pequena com:
 - definição de uma nova senha
 - login de novo com a senha atualizada
 
-O OTP é enviado pelo Gmail via Nodemailer. Se o e-mail não estiver configurado, o código aparece no terminal para a aula continuar.
+O OTP é enviado pelo Gmail via mailer do Laravel. Se o e-mail não estiver configurado, o código aparece no terminal para a aula continuar.
 
 ---
 
@@ -26,25 +26,22 @@ O OTP é enviado pelo Gmail via Nodemailer. Se o e-mail não estiver configurado
 
 Requisitos:
 
-- Node.js 18 ou superior
-- npm
+- PHP 8.3 ou superior (com `pdo_mysql` e `mbstring`)
+- Composer
 - MariaDB (ou MySQL compatível) rodando na máquina
 
 No terminal, dentro da pasta do projeto:
 
 ```bash
-npm install
+composer install
 ```
 
-Isso instala Express, mysql2, bcryptjs, nodemailer, dotenv e express-session.
-
-- `mysql2` fala com o MariaDB.
-- `bcryptjs` usa o mesmo algoritmo do bcrypt, sem compilação nativa.
+Isso instala o Laravel. O hash da senha usa `password_hash` do PHP (bcrypt), sem biblioteca extra.
 
 Depois, crie o banco (usuário `root` sem senha):
 
 ```bash
-npm run db:setup
+mysql -u root < sql/create-database.sql
 ```
 
 Se o cliente do seu computador se chama `mariadb`:
@@ -52,6 +49,8 @@ Se o cliente do seu computador se chama `mariadb`:
 ```bash
 mariadb -u root < sql/create-database.sql
 ```
+
+O Laravel desta aula **não** cria as tabelas por migration. O script SQL é a fonte do banco, igual na versão em JavaScript.
 
 ---
 
@@ -61,21 +60,26 @@ Copie o arquivo de exemplo:
 
 ```bash
 cp .env.example .env
+php artisan key:generate
 ```
 
-Variáveis:
+`php artisan key:generate` preenche `APP_KEY`. Essa chave assina o cookie de sessão.
+
+Variáveis da aula:
 
 | Variável | Para que serve |
 |---|---|
-| `PORT` | Porta do servidor (padrão `3000`) |
+| `APP_URL` | URL do site (`http://localhost:3000`) |
+| `APP_KEY` | Chave que assina o cookie de sessão |
 | `DB_HOST` | Endereço do MariaDB (`localhost`) |
 | `DB_PORT` | Porta do MariaDB (`3306`) |
-| `DB_USER` | Usuário do banco (`root` na aula) |
+| `DB_DATABASE` | Nome do banco (`cruso_setec`) |
+| `DB_USERNAME` | Usuário do banco (`root` na aula) |
 | `DB_PASSWORD` | Senha do banco (vazia na aula) |
-| `DB_NAME` | Nome do banco (`cruso_setec`) |
-| `SESSION_SECRET` | Frase secreta que assina o cookie de sessão |
 | `EMAIL_USER` | Conta Gmail que envia o OTP |
 | `EMAIL_PASSWORD` | App Password do Google (16 caracteres) |
+
+A sessão fica em arquivo (`SESSION_DRIVER=file`) por 2 horas (`SESSION_LIFETIME=120`). O cookie é `httpOnly` e `sameSite=lax`.
 
 Nunca cole senhas no código-fonte. O arquivo `.env` fica de fora do Git.
 
@@ -85,7 +89,7 @@ Se `EMAIL_USER` e `EMAIL_PASSWORD` ficarem vazios, o projeto ainda funciona: o O
 
 ## 4. Como criar a App Password do Google
 
-O Gmail **não aceita a senha normal da conta** no Nodemailer. Use uma senha de aplicativo.
+O Gmail **não aceita a senha normal da conta** no SMTP. Use uma senha de aplicativo.
 
 1. Acesse a conta Google que vai enviar os e-mails.
 2. Ative a **verificação em duas etapas**.
@@ -102,14 +106,10 @@ Se a tela de senhas de app não aparecer, a verificação em duas etapas ainda n
 ## 5. Como iniciar o projeto
 
 ```bash
-npm start
+php artisan serve --port=3000
 ```
 
-Para recarregar sozinho quando um arquivo mudar:
-
-```bash
-npm run dev
-```
+O mesmo comando está em `composer start` e `composer run dev`.
 
 Abra no navegador:
 
@@ -117,45 +117,53 @@ Abra no navegador:
 http://localhost:3000
 ```
 
-Antes de iniciar, o banco precisa existir. Rode `npm run db:setup` uma vez.
+Antes de iniciar, o banco precisa existir. Rode `mysql -u root < sql/create-database.sql` uma vez.
 
 ---
 
 ## 6. Estrutura das pastas
 
 ```
-recuperacao-senha-otp-setec/
-├── .env.example          # modelo das variáveis de ambiente
-├── package.json
+cruso-setec/
+├── .env.example
+├── artisan
+├── composer.json
 ├── README.md
 ├── sql/
-│   └── create-database.sql  # cria o banco e as tabelas no MariaDB
-├── src/
-│   ├── server.js         # sobe o Express, sessão e arquivos estáticos
-│   ├── routes.js         # endpoints da API (regras de negócio)
-│   ├── database.js       # conexão MariaDB e consultas
-│   ├── email.js          # envio do OTP com Nodemailer
-│   ├── auth.js           # middleware de sessão
-│   └── utils.js          # OTP, validações e hash da senha
+│   └── create-database.sql
+├── app/
+│   ├── Database.php          # conexão MariaDB e consultas
+│   ├── Email.php             # envio do OTP
+│   ├── Utils.php             # OTP, validações e hash da senha
+│   └── Http/
+│       ├── Controllers/
+│       │   └── ApiController.php   # endpoints da API
+│       └── Middleware/
+│           └── RequireAuth.php     # checagem da sessão
+├── bootstrap/
+│   └── app.php               # sessão web e exceção de CSRF em /api
+├── routes/
+│   └── web.php               # páginas HTML e rotas /api
+├── resources/
+│   └── pages/                # HTML servido pelas rotas
 └── public/
     ├── css/style.css
-    ├── js/app.js         # fetch compartilhado e mensagens
-    ├── login.html
-    ├── register.html
-    ├── home.html
-    ├── forgot-password.html
-    ├── verify-code.html
-    └── reset-password.html
+    ├── js/app.js
+    └── index.php             # porta de entrada do Laravel
 ```
+
+O Laravel também traz `config/`, `storage/` e `vendor/`. A aula mora nos arquivos acima.
 
 Onde cada coisa mora:
 
-- **Rotas:** `src/routes.js`
-- **Regras de negócio:** também em `src/routes.js` (de propósito, para a aula)
-- **Banco de dados:** `src/database.js`
-- **Envio de e-mail:** `src/email.js`
-- **Autenticação:** `src/auth.js` + sessão no `src/server.js`
-- **Utilitários:** `src/utils.js`
+- **Rotas:** `routes/web.php` e `app/Http/Controllers/ApiController.php`
+- **Regras de negócio:** `ApiController.php` (de propósito, para a aula)
+- **Banco de dados:** `app/Database.php` e `sql/create-database.sql`
+- **Envio de e-mail:** `app/Email.php`
+- **Autenticação:** `app/Http/Middleware/RequireAuth.php` e a sessão do grupo `web`
+- **Utilitários:** `app/Utils.php`
+
+Os HTML ficam em `resources/pages/` e não na raiz de `public/`. O `php artisan serve` entrega qualquer arquivo que já exista em `public/` sem passar pelo Laravel. Se `home.html` estivesse lá, a checagem de sessão não rodaria.
 
 ---
 
@@ -204,7 +212,7 @@ MariaDB no banco `cruso_setec`, criado pelo script [sql/create-database.sql](sql
 1. O aluno informa e-mail e senha em `login.html`.
 2. O navegador chama `POST /api/login`.
 3. O servidor busca o usuário e compara a senha com o hash.
-4. Se estiver correto, grava `userId` na sessão (cookie `connect.sid`).
+4. Se estiver correto, grava `userId` na sessão (cookie do Laravel).
 5. A home chama `GET /api/me` e mostra `Olá, [nome]!`.
 6. “Sair da conta” chama `POST /api/logout` e apaga a sessão.
 
@@ -262,7 +270,7 @@ curl -b cookies.txt http://localhost:3000/api/me
 ## 12. Principais cuidados de segurança
 
 - A senha original **nunca** é gravada. Só o hash do bcrypt.
-- O OTP é aleatório (`crypto.randomInt`), tem 6 dígitos e vale 10 minutos.
+- O OTP é aleatório (`random_int`), tem 6 dígitos e vale 10 minutos.
 - Cada código é de **uso único** (`used_at`).
 - Depois de 5 tentativas erradas, o código deixa de ser aceito.
 - Pedir um código novo invalida os anteriores daquele usuário.
@@ -272,6 +280,7 @@ curl -b cookies.txt http://localhost:3000/api/me
 - Credenciais ficam no `.env`.
 - O servidor valida os dados recebidos (e-mail, tamanho da senha, confirmação).
 - O cookie de sessão é `httpOnly` (o JavaScript da página não lê o cookie).
+- As rotas `/api` não exigem token CSRF porque o frontend já envia o cookie com `credentials: 'same-origin'`.
 - Senhas e códigos não são impressos nos logs quando o SMTP está configurado.
 
-Este projeto é material de aula. Em produção, ainda faltariam itens como HTTPS obrigatório, limite de pedidos por IP, hash do próprio OTP no banco e um gerenciador de sessão persistente.
+Este projeto é material de aula. Em produção, ainda faltariam itens como HTTPS obrigatório, limite de pedidos por IP, hash do próprio OTP no banco e proteção CSRF no frontend.
